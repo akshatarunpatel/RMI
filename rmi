@@ -1,44 +1,56 @@
-CLIENT
+import java.rmi.*;
 import java.net.*;
-import java.io.*;
+public class AddServer {
+public static void main(String args[]) {
+try { 
+//create remote object
+AddServerImpl addServerImpl = new AddServerImpl(); 
+//bind the remote object
+Naming.rebind("AddServer", addServerImpl);
+}
+catch (Exception e) {
+System.out.println("Exception: "+ e);
+}}}
+......................................................................................
 
-public class client {
-    public static void main(String[] args) throws IOException {
-        Socket s = new Socket("localhost", 4999);
-        PrintWriter pr = new PrintWriter(s.getOutputStream());
-        pr.println("is it working");
-        pr.flush();
-
-        InputStreamReader in = new InputStreamReader(s.getInputStream());
-        BufferedReader bf = new BufferedReader(in);
-
-        String str = bf.readLine();
-        System.out.println("server : " + str);
-
-    }
+import java.rmi.*;
+import java.rmi.server.*;
+//class that implements the remote interface
+public class AddServerImpl extends UnicastRemoteObject 
+implements AddServerIntf {
+//constructor
+public AddServerImpl() throws RemoteException {
+}
+//implement method declared in the interface
+public double add(double d1, double d2) throws RemoteException {
+ return d1 + d2; }
 }
 
+..........................................................................................
 
-SERVER
-import java.net.*;
-import java.io.*;
-
-public class server {
-    public static void main(String[] args) throws IOException {
-        ServerSocket ss = new ServerSocket(4999);
-        Socket s = ss.accept();
-        System.out.println("client connected");
-
-        InputStreamReader in = new InputStreamReader(s.getInputStream());
-        BufferedReader bf = new BufferedReader(in);
-
-        String str = bf.readLine();
-        System.out.println("client : " + str);
-
-        PrintWriter pr = new PrintWriter(s.getOutputStream());
-        pr.println("yes");
-        pr.flush();
-
-    }
+import java.rmi.*;
+public interface AddServerIntf extends Remote { 
+//method declaration 
+double add(double d1, double d2) throws RemoteException;
 }
+
+.............................................................................................
+
+import java.rmi.*;
+public class AddClient {
+public static void main(String args[]) { 
+try {
+// Get reference to the remote object
+String addServerURL = "rmi://" + args[0] + "/AddServer"; 
+AddServerIntf addServerIntf =
+(AddServerIntf) Naming.lookup(addServerURL);
+System.out.println("The first number is: " + args[1]); 
+double d1 = Double.parseDouble(args[1]);
+System.out.println("The second number is: " + args[2]);
+double d2 = Double.parseDouble(args[2]);
+// Invoke remote method to add numbers
+System.out.println("The sum is: " + addServerIntf.add(d1, d2));
+} 
+catch (Exception e) { System.out.println("Exception: "+ e);
+}}}
 
